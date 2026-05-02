@@ -1,31 +1,37 @@
 /* =============================================================================
  * Extractly — Stylesheet
- * Supports desktop (mouse + right-click pan) and mobile (touch + pinch zoom).
+ * Desktop: horizontal toolbar, full-height canvas, right-click pan.
+ * Mobile:  compact header, collapsible instruction area, floating canvas
+ *          controls (zoom +/-, pan mode toggle).
  * ============================================================================= */
 
 
 /* -------------------------------------------------------------------------- */
-/* THEME VARIABLES                                                             */
+/* THEME                                                                       */
 /* -------------------------------------------------------------------------- */
 
 :root {
     --bg:           #0d0d0d;
     --panel:        #161616;
+    --panel-mid:    #1a1a1a;
     --accent-blue:  #3466c1;
     --accent-cyan:  #47b8e5;
     --text:         #ffffff;
+    --text-muted:   #888888;
     --border:       #2a2a2a;
     --btn-grad:     linear-gradient(135deg, #3466c1 0%, #47b8e5 100%);
+    --radius:       6px;
+
+    /* Scroll buffer around the canvas — also used in fileInput handler in JS. */
+    --canvas-pad:   500px;
 }
 
 
 /* -------------------------------------------------------------------------- */
-/* GLOBAL RESET                                                                */
+/* RESET                                                                       */
 /* -------------------------------------------------------------------------- */
 
-*, *::before, *::after {
-    box-sizing: border-box;
-}
+*, *::before, *::after { box-sizing: border-box; }
 
 body {
     font-family: 'Segoe UI', Roboto, Helvetica, sans-serif;
@@ -35,13 +41,11 @@ body {
     display: flex;
     flex-direction: column;
 
-    /* 100dvh accounts for the iOS Safari address bar collapsing/expanding.
-     * 100vh is the fallback for browsers without dvh support. */
+    /* dvh handles iOS Safari address-bar resize; vh is the fallback. */
     height: 100dvh;
     height: 100vh;
 
-    /* Prevent the page body from scrolling — only the canvas viewport scrolls. */
-    overflow: hidden;
+    overflow: hidden; /* Only the canvas viewport scrolls, not the page. */
 }
 
 
@@ -51,43 +55,53 @@ body {
 
 .wizard-header {
     background: var(--panel);
-    padding: 10px 25px;
+    padding: 10px 20px;
     border-bottom: 1px solid var(--border);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    z-index: 1000;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
     flex-shrink: 0;
+    z-index: 200;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
 }
 
 .brand-container {
     display: flex;
     align-items: center;
-    gap: 12px;
-    min-width: 0;
+    gap: 10px;
+    min-width: 0; /* Allow text to shrink/truncate */
 }
 
-.logo-icon     { height: 80px; width: 80px; object-fit: contain; flex-shrink: 0; }
-.logo-wordmark { height: 80px; width: auto; object-fit: contain; opacity: 0.9; flex-shrink: 0; }
+.logo-icon {
+    height: 64px;
+    width:  64px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.logo-wordmark {
+    height: 64px;
+    width:  auto;
+    object-fit: contain;
+    opacity: 0.9;
+    flex-shrink: 0;
+}
 
 .brand-divider {
     width: 1px;
-    height: 24px;
+    height: 22px;
     background: var(--border);
-    margin: 0 4px;
     flex-shrink: 0;
 }
 
 .step-indicator {
-    margin-left: 10px;
     font-weight: 700;
     color: var(--accent-cyan);
     text-transform: uppercase;
-    letter-spacing: 1.5px;
-    font-size: 13px;
+    letter-spacing: 1.2px;
+    font-size: 12px;
     border-left: 2px solid var(--accent-blue);
-    padding-left: 15px;
+    padding-left: 12px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -96,8 +110,9 @@ body {
 
 .nav-btns {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     flex-shrink: 0;
+    margin-left: 12px;
 }
 
 
@@ -106,79 +121,107 @@ body {
 /* -------------------------------------------------------------------------- */
 
 .instruction-bar {
-    background: #1a1a1a;
-    padding: 15px 25px;
+    background: var(--panel-mid);
     border-bottom: 1px solid var(--border);
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    z-index: 1000;
     flex-shrink: 0;
+    z-index: 100;
     /*
-     * Do NOT add overflow: hidden here.
-     *
-     * The child .toolbar-row relies on overflow-x: auto to enable horizontal
-     * scrolling. A parent with overflow: hidden overrides the child's overflow
-     * setting entirely, silently clipping any content that extends beyond the
-     * instruction bar's bounds. The result is that toolbar buttons at the end
-     * of the row are invisible and unreachable with no indication why.
+     * No overflow: hidden here — the child toolbar-row needs overflow-x: auto.
+     * A parent overflow: hidden would silently override it and clip the toolbar.
      */
 }
 
+/* Toggle button — desktop: always visible as a plain label row.
+   On mobile it becomes a tappable chevron button. */
+.btn-toggle-bar {
+    display: none; /* Hidden on desktop; shown at mobile breakpoint below */
+}
+
+/* The collapsible zone: instruction text + step-specific context rows */
+.bar-collapsible {
+    padding: 10px 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
 .instruction-text {
-    font-size: 14px;
+    font-size: 13px;
     color: #bbb;
-    min-height: 1.4em;
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 12px;
     flex-wrap: wrap;
+    padding-bottom: 4px;
 }
 
 .instruction-text b { color: var(--accent-cyan); }
 
+.palette-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
 /*
- * The toolbar scrolls HORIZONTALLY instead of wrapping onto new lines.
- *
- * Wrapping was the original cause of missing buttons on mobile: extra rows
- * pushed content below 100vh, and body { overflow: hidden } clipped it.
- * The buttons were there — just silently cut off below the visible area.
- *
- * With nowrap + overflow-x: auto, all tool groups stay on one line and are
- * always reachable by swiping left/right on touch or scrolling on desktop.
+ * Always-visible toolbar row.
+ * Uses horizontal scroll (nowrap) instead of wrap — wrapping was the original
+ * cause of buttons being pushed off-screen and clipped by body { overflow: hidden }.
  */
 .toolbar-row {
     display: flex;
-    gap: 20px;
+    gap: 18px;
     align-items: center;
     flex-wrap: nowrap;
     overflow-x: auto;
     overflow-y: visible;
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;      /* Hide scrollbar track — still scrollable */
-    padding-bottom: 4px;        /* Stops button drop-shadows being clipped */
+    scrollbar-width: none;
+    padding: 10px 20px;
 }
 
 .toolbar-row::-webkit-scrollbar { display: none; }
 
+/* Fade edges to hint that the toolbar is scrollable */
+.instruction-bar::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: auto;
+    width: 32px;
+    height: 52px;       /* Approximate toolbar height */
+    background: linear-gradient(to right, transparent, var(--panel-mid));
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+/* .tool-group and friends */
 .tool-group {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    flex-shrink: 0; /* Groups must not compress — scroll the row instead */
+    gap: 5px;
+    flex-shrink: 0;
 }
 
 .input-pair {
     display: flex;
-    gap: 2px;
+    gap: 3px;
     align-items: center;
 }
 
-.palette-row {
+.flood-toggle-row {
     display: flex;
     align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-muted);
+    white-space: nowrap;
 }
 
 
@@ -187,106 +230,160 @@ body {
 /* -------------------------------------------------------------------------- */
 
 /*
- * .viewport is a plain scroll container with NO display: flex and NO padding.
- *
- * Why: there is a well-known browser rendering bug where a flex container with
- * overflow: auto does not include the END padding (right + bottom) in the
- * scrollable area. The canvas appears to have no scroll buffer on the right
- * and bottom — it sits flush against the edge and cannot be panned past it.
- * This was the "images pulled to the right" issue.
- *
- * Fix: move the flex layout and the 500px padding into an inner
- * .viewport-content div. The inner div uses min-width/height: max-content,
- * which forces the browser to expand it to its full content size and correctly
- * include the end padding in the scroll area.
+ * Plain scroll container — no flex, no padding here.
+ * Padding lives in .viewport-content to avoid the flex+overflow end-padding
+ * clipping bug (which was causing the canvas to appear flush-right).
  */
 .viewport {
-    flex: 1;            /* Fills remaining body height in the flex-column body */
+    flex: 1;
     overflow: auto;
     background: #050505;
-    touch-action: none; /* Required: stops iOS Safari intercepting pinch/swipe */
     position: relative;
+    touch-action: none; /* Stop iOS Safari intercepting pinch/swipe gestures */
 }
 
+/*
+ * Inner layout container.
+ * min-width/height: max-content forces full expansion so the 500px padding
+ * on all four sides is included in the scroll area — not clipped.
+ */
 .viewport-content {
     display: flex;
     align-items: flex-start;
     justify-content: flex-start;
-    padding: 500px;
-
-    /*
-     * These two lines are the actual fix for the flex overflow + padding bug.
-     * min-width/height: max-content prevents the flex container collapsing and
-     * forces it to fully expand, so the 500px right/bottom padding is rendered
-     * as real scrollable space rather than being clipped.
-     */
-    min-width: max-content;
+    padding: var(--canvas-pad);
+    min-width:  max-content;
     min-height: max-content;
-    box-sizing: content-box;
+    box-sizing:  content-box;
 }
 
 .canvas-wrapper {
     position: relative;
-    box-shadow: 0 0 60px rgba(0, 0, 0, 1);
+    box-shadow: 0 0 80px rgba(0, 0, 0, 0.9);
     background: repeating-conic-gradient(#111 0% 25%, #181818 0% 50%) 50% / 20px 20px;
-    z-index: 1;
-    border: 1px solid #222;
+    border: 1px solid #2a2a2a;
     flex-shrink: 0;
 }
 
-canvas#mainCanvas {
-    display: block;
-}
+canvas#mainCanvas   { display: block; }
 
-/* Overlay sits exactly on top of the main canvas. pointer-events: none
- * ensures all interaction is handled by the viewport event listeners. */
 canvas#overlayCanvas {
     position: absolute;
-    top: 0;
-    left: 0;
+    top: 0; left: 0;
     pointer-events: none;
-    z-index: 500;
+    z-index: 5;
 }
 
 
 /* -------------------------------------------------------------------------- */
-/* BUTTONS                                                                     */
+/* FLOATING CANVAS CONTROLS                                                    */
+/* -------------------------------------------------------------------------- */
+
+/*
+ * Zoom +/- and pan mode toggle, overlaid in the bottom-right of the viewport.
+ *
+ * Pan mode toggle — replaces the right-click gesture on touch devices:
+ *   OFF (default): one finger = step action (draw box, pick colour, etc.)
+ *   ON:            one finger = pan the canvas freely
+ *
+ * This lets users move the image without needing awkward two-finger drag while
+ * also trying to draw or pick a colour on a small screen.
+ */
+.floating-controls {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    z-index: 50;
+    pointer-events: all;
+}
+
+.float-btn {
+    width:  44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(22, 22, 22, 0.92);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    /* Override base button styles */
+    text-transform: none;
+    padding: 0;
+    border-radius: 50%;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.float-btn:hover:not(:disabled) {
+    background: rgba(52, 102, 193, 0.9);
+    border-color: var(--accent-cyan);
+    transform: none; /* Override base translateY hover */
+    filter: none;
+}
+
+/* Active / engaged state for pan toggle */
+.float-btn.float-pan.pan-active {
+    background: var(--btn-grad);
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 0 3px rgba(71, 184, 229, 0.35), 0 2px 12px rgba(0, 0, 0, 0.6);
+    color: #fff;
+}
+
+.float-divider {
+    width: 1px;
+    height: 10px;
+    background: var(--border);
+}
+
+
+/* -------------------------------------------------------------------------- */
+/* BUTTONS (global)                                                            */
 /* -------------------------------------------------------------------------- */
 
 button {
     cursor: pointer;
-    padding: 10px 22px;
+    padding: 9px 18px;
     border: none;
-    border-radius: 5px;
+    border-radius: var(--radius);
     background: var(--btn-grad);
     color: white;
     font-weight: 700;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    font-family: inherit;
+    transition: filter 0.15s, transform 0.15s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
     text-transform: uppercase;
     font-size: 11px;
     white-space: nowrap;
     flex-shrink: 0;
 }
 
-button:hover:not(:disabled) {
-    filter: brightness(1.1);
-    transform: translateY(-1px);
-}
+button:hover:not(:disabled) { filter: brightness(1.12); transform: translateY(-1px); }
 
 button:disabled {
-    background: #333 !important;
-    color: #666;
+    background: #2e2e2e !important;
+    color: #555;
     cursor: not-allowed;
     box-shadow: none;
     transform: none;
-    border: 1px solid #444;
+    border: 1px solid #3a3a3a;
+    filter: none;
 }
 
-.btn-back     { background: transparent; border: 1px solid #444; color: #888; }
-.btn-confirm  { background: var(--btn-grad); padding: 8px 15px; font-size: 13px; }
-.btn-download { background: var(--btn-grad); border: 1px solid #fff; }
-.btn-undo     { background: #444; font-size: 11px; padding: 5px 10px; }
+.btn-back     { background: transparent; border: 1px solid #444; color: #999; }
+.btn-confirm  { background: var(--btn-grad); padding: 7px 14px; font-size: 12px; }
+.btn-download { background: var(--btn-grad); border: 1px solid rgba(255,255,255,0.3); }
+.btn-undo     { background: #333; border: 1px solid #444; font-size: 11px; padding: 7px 12px; color: #ccc; }
 
 
 /* -------------------------------------------------------------------------- */
@@ -294,49 +391,52 @@ button:disabled {
 /* -------------------------------------------------------------------------- */
 
 label {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
-    color: #888;
+    color: var(--text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.6px;
     white-space: nowrap;
 }
 
 input[type="range"] {
     accent-color: var(--accent-cyan);
-    width: 120px;
+    width: 110px;
+    cursor: pointer;
 }
 
-input[type="range"]#tolerance {
-    width: 240px;
-}
+input[type="range"]#tolerance { width: 220px; }
 
 input[type="color"] {
-    background: #333;
+    background: #2a2a2a;
     border: 1px solid #444;
-    height: 30px;
+    height: 32px;
+    width:  58px;
     cursor: pointer;
-    width: 60px;
+    border-radius: 4px;
 }
 
 input[type="number"],
 select {
-    background: #222;
-    border: 1px solid #333;
-    color: #fff;
-    padding: 6px;
+    background: #1e1e1e;
+    border: 1px solid #3a3a3a;
+    color: var(--text);
+    padding: 6px 8px;
     border-radius: 4px;
     font-weight: 600;
-    width: 65px;
+    font-size: 12px;
+    width: 62px;
 }
 
+select { width: auto; min-width: 100px; }
+
 .swatch {
-    width: 22px;
+    width:  22px;
     height: 22px;
     border-radius: 50%;
-    border: 2px solid white;
+    border: 2px solid rgba(255,255,255,0.7);
     display: inline-block;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
     flex-shrink: 0;
 }
 
@@ -344,45 +444,151 @@ select {
 
 
 /* -------------------------------------------------------------------------- */
-/* RESPONSIVE — TABLET & MOBILE (max-width: 768px)                            */
+/* RESPONSIVE — TABLET (max-width: 900px)                                     */
 /* -------------------------------------------------------------------------- */
 
-@media (max-width: 768px) {
-
-    /* Shrink logos 80px → 40px, recovering ~40px of vertical space. */
-    .logo-icon,
-    .logo-wordmark {
-        height: 40px;
-        width: auto;
-    }
-
-    .wizard-header   { padding: 8px 15px; }
-    .instruction-bar { padding: 8px 15px; gap: 8px; }
-    .instruction-text { font-size: 12px; }
-
-    .step-indicator {
-        font-size: 11px;
-        max-width: 160px;
-    }
-
-    input[type="range"]#tolerance { width: 160px; }
-
-    button         { padding: 8px 16px; font-size: 10px; }
-    .btn-confirm   { padding: 7px 12px; font-size: 11px; }
+@media (max-width: 900px) {
+    .logo-icon     { height: 48px; width: 48px; }
+    .logo-wordmark { height: 48px; }
 }
 
 
 /* -------------------------------------------------------------------------- */
-/* RESPONSIVE — SMALL PHONES (max-width: 400px)                               */
+/* RESPONSIVE — MOBILE (max-width: 640px)                                     */
 /* -------------------------------------------------------------------------- */
 
-@media (max-width: 400px) {
+@media (max-width: 640px) {
 
-    /* Very narrow screens: hide the wordmark, keep just the icon. */
-    .logo-wordmark { display: none; }
-    .logo-icon     { height: 34px; width: 34px; }
+    /* ── Header ── */
+    .wizard-header { padding: 6px 12px; }
+    .logo-icon     { height: 36px; width: 36px; }
+    .logo-wordmark { display: none; } /* Icon alone is enough at this width */
+    .brand-divider { display: none; }
 
-    .step-indicator              { font-size: 10px; max-width: 120px; }
-    input[type="range"]#tolerance { width: 130px; }
-    input[type="range"]          { width: 90px;  }
+    .step-indicator {
+        font-size: 10px;
+        letter-spacing: 0.6px;
+        padding-left: 10px;
+        max-width: 150px;
+    }
+
+    button { padding: 9px 14px; font-size: 10px; }
+    .btn-confirm { padding: 8px 12px; font-size: 11px; }
+    .nav-btns { gap: 6px; margin-left: 8px; }
+
+    /* ── Instruction bar ── */
+    .instruction-bar { position: relative; }
+
+    /*
+     * On mobile the collapsible zone is hidden by default.
+     * The toggle button reveals it. This keeps the header chrome minimal so
+     * the canvas gets maximum vertical space.
+     */
+    .bar-collapsible {
+        display: none;
+        padding: 8px 12px 4px;
+        border-bottom: 1px solid var(--border);
+        animation: slideDown 0.15s ease;
+    }
+
+    .instruction-bar.bar-open .bar-collapsible {
+        display: flex;
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-6px); }
+        to   { opacity: 1; transform: translateY(0);    }
+    }
+
+    /* Show the toggle button on mobile */
+    .btn-toggle-bar {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: transparent;
+        border: none;
+        border-bottom: 1px solid var(--border);
+        color: var(--text-muted);
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 7px 12px;
+        cursor: pointer;
+        width: 100%;
+        box-shadow: none;
+        border-radius: 0;
+        transform: none !important;
+        filter: none !important;
+    }
+
+    .btn-toggle-bar:hover { color: var(--accent-cyan); }
+
+    .toggle-icon {
+        font-size: 12px;
+        transition: transform 0.2s;
+        display: inline-block;
+    }
+
+    .instruction-bar.bar-open .toggle-icon {
+        transform: rotate(180deg);
+    }
+
+    /* Tighten toolbar on mobile */
+    .toolbar-row { padding: 8px 12px; gap: 14px; }
+
+    input[type="range"]          { width: 90px; }
+    input[type="range"]#tolerance { width: 140px; }
+
+    input[type="number"],
+    select { width: 54px; font-size: 11px; }
+
+    select { width: auto; min-width: 80px; }
+
+    /* ── Floating controls — more prominent on touch ── */
+    .float-btn {
+        width:  48px;
+        height: 48px;
+        font-size: 22px;
+    }
+
+    .floating-controls {
+        bottom: 16px;
+        right:  16px;
+        gap: 8px;
+    }
+}
+
+
+/* -------------------------------------------------------------------------- */
+/* RESPONSIVE — VERY SMALL (max-width: 380px)                                 */
+/* -------------------------------------------------------------------------- */
+
+@media (max-width: 380px) {
+    .step-indicator { display: none; } /* Extremely tight — step shown in toolbar */
+    input[type="range"]#tolerance { width: 110px; }
+    input[type="range"]           { width: 80px;  }
+}
+
+
+/* -------------------------------------------------------------------------- */
+/* TOUCH-DEVICE SPECIFICS                                                      */
+/* Targets devices where the primary input is coarse (finger, not mouse).     */
+/* -------------------------------------------------------------------------- */
+
+@media (hover: none) and (pointer: coarse) {
+
+    /* Larger touch targets for sliders and inputs */
+    input[type="range"] { height: 28px; }
+
+    /* Show the pan mode button — desktop users right-click to pan instead */
+    .float-btn.float-pan { display: flex; }
+
+    /* Increase tap target size for number inputs */
+    input[type="number"] { min-height: 36px; }
+}
+
+/* On desktop (hover capable): hide the pan toggle — right-click pan works fine */
+@media (hover: hover) and (pointer: fine) {
+    .float-btn.float-pan { display: none; }
 }
