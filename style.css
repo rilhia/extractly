@@ -1,0 +1,169 @@
+/* --- Root Variables & Theme Definition --- */
+:root { 
+    --bg: #0d0d0d; 
+    --panel: #161616; 
+    --accent-blue: #3466c1; 
+    --accent-cyan: #47b8e5; 
+    --text: #ffffff; 
+    --border: #2a2a2a; 
+    --btn-grad: linear-gradient(135deg, #3466c1 0%, #47b8e5 100%);
+}
+
+/* --- Layout Structure --- */
+body { 
+    font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; 
+    background: var(--bg); 
+    color: var(--text); 
+    margin: 0; 
+    display: flex; 
+    flex-direction: column; 
+    height: 100vh; 
+    overflow: hidden; 
+}
+
+.wizard-header { 
+    background: var(--panel); 
+    padding: 10px 25px; 
+    border-bottom: 1px solid var(--border); 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    z-index: 1000; 
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.brand-container { 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; 
+}
+
+.logo-icon { height: 80px; width: 80px; object-fit: contain; }
+.logo-wordmark { height: 80px; width: auto; object-fit: contain; opacity: 0.9; }
+
+.brand-divider {
+    width: 1px;
+    height: 24px;
+    background: var(--border);
+    margin: 0 4px;
+}
+
+.step-indicator { 
+    margin-left: 10px;
+    font-weight: 700; 
+    color: var(--accent-cyan); 
+    text-transform: uppercase; 
+    letter-spacing: 1.5px; 
+    font-size: 13px; 
+    border-left: 2px solid var(--accent-blue);
+    padding-left: 15px;
+}
+
+/* --- Instructional & Toolbars --- */
+.instruction-bar { 
+    background: #1a1a1a; 
+    padding: 15px 25px; 
+    border-bottom: 1px solid var(--border); 
+    display: flex; 
+    flex-direction: column; 
+    gap: 12px; 
+    z-index: 1000; 
+}
+
+.instruction-text { font-size: 14px; color: #bbb; min-height: 1.4em; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+.instruction-text b { color: var(--accent-cyan); }
+
+.toolbar-row { display: flex; gap: 25px; align-items: center; flex-wrap: wrap; }
+.tool-group { display: flex; flex-direction: column; gap: 4px; }
+.input-pair { display: flex; gap: 2px; align-items: center; }
+
+/* --- Interaction Viewport --- */
+
+/*
+.viewport { 
+    flex: 1; 
+    overflow: auto; 
+    background: #050505; 
+    position: relative; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    padding: 500px; 
+}
+
+.canvas-wrapper { 
+    position: relative; 
+    box-shadow: 0 0 60px rgba(0,0,0,1); 
+    background: repeating-conic-gradient(#111 0% 25%, #181818 0% 50%) 50% / 20px 20px;
+    z-index: 1;
+    border: 1px solid #222;
+}
+
+*/
+
+
+.canvas-wrapper { 
+    position: relative; 
+    box-shadow: 0 0 60px rgba(0,0,0,1); 
+    background: repeating-conic-gradient(#111 0% 25%, #181818 0% 50%) 50% / 20px 20px;
+    z-index: 1;
+    border: 1px solid #222;
+    /* Remove transform-origin and transform from here */
+}
+
+/* Ensure the viewport uses a flex-start alignment so zoom grows from the top-left */
+.viewport { 
+    flex: 1; 
+    overflow: auto; 
+    background: #050505; 
+    position: relative; 
+    display: flex; 
+    align-items: flex-start; /* Changed from center to allow scrolling to top */
+    justify-content: flex-start; /* Changed from center */
+    padding: 500px; 
+}
+
+
+
+
+
+
+
+canvas#mainCanvas { display: block; }
+
+/* Fixed overlay canvas allows drawing/selection boxes to appear on top of scrollable area */
+canvas#overlayCanvas { 
+    position: absolute; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    pointer-events: none; 
+    z-index: 500; 
+}
+
+/* --- UI Components (Buttons/Inputs) --- */
+button { 
+    cursor: pointer; padding: 10px 22px; border: none; border-radius: 5px; 
+    background: var(--btn-grad); color: white; font-weight: 700; 
+    transition: all 0.2s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    text-transform: uppercase; font-size: 11px;
+}
+button:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-1px); }
+button:disabled { background: #333 !important; color: #666; cursor: not-allowed; box-shadow: none; transform: none; border: 1px solid #444; }
+
+.btn-back { background: transparent; border: 1px solid #444; color: #888; }
+.btn-confirm { background: var(--btn-grad); padding: 8px 15px; font-size: 13px; }
+.btn-download { background: var(--btn-grad); border: 1px solid #fff; }
+.btn-undo { background: #444; font-size: 11px; padding: 5px 10px; }
+
+input[type="range"] { accent-color: var(--accent-cyan); width: 120px; }
+input[type="range"]#tolerance { 
+    width: 240px; 
+}
+input[type="color"] { background: #333; border: 1px solid #444; height: 30px; cursor: pointer; width: 60px; }
+input[type="number"], select { background: #222; border: 1px solid #333; color: #fff; padding: 6px; border-radius: 4px; font-weight: 600; width: 65px; }
+
+.swatch { width: 22px; height: 22px; border-radius: 50%; border: 2px solid white; display: inline-block; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
+.hidden { display: none !important; }
+
