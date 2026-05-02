@@ -851,9 +851,15 @@ document.getElementById('fileInput').onchange = (e) => {
 
             document.getElementById('btnNext').disabled = false;
 
-            // Scroll to centre so the image isn't flush against the top-left
-            viewport.scrollLeft = 500;
-            viewport.scrollTop  = 500;
+            // Centre the canvas in the viewport by scrolling to the midpoint
+            // of the total scrollable area. setTimeout(0) lets the browser
+            // finish updating scroll dimensions before we read them.
+            // This replaces the previous hardcoded scrollLeft/Top = 500, which
+            // only worked correctly when the canvas exactly filled the viewport.
+            setTimeout(() => {
+                viewport.scrollLeft = Math.max(0, (viewport.scrollWidth  - viewport.clientWidth)  / 2);
+                viewport.scrollTop  = Math.max(0, (viewport.scrollHeight - viewport.clientHeight) / 2);
+            }, 0);
 
             updateStepUI();
         };
@@ -1015,8 +1021,15 @@ viewport.addEventListener('touchstart', (e) => {
  * Two fingers: pans the viewport by tracking midpoint movement, and
  *              simultaneously updates zoom from the pinch scale factor.
  * One finger:  forwards to the existing onmousemove handler.
+ *
+ * Important: e.preventDefault() is only called when the user is actively
+ * interacting with the canvas (drawing, panning, or pinching). Without this
+ * guard, preventDefault() fires on every touchmove on the page — including
+ * swipes on the toolbar — and kills horizontal toolbar scrolling on mobile.
  */
 window.addEventListener('touchmove', (e) => {
+    const isCanvasInteraction = isPanning || isDrawing || isMovingCrop || e.touches.length >= 2;
+    if (!isCanvasInteraction) return; // Let the browser handle toolbar swipes etc.
     e.preventDefault();
 
     if (e.touches.length === 2) {
