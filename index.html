@@ -34,43 +34,58 @@
     <!-- INSTRUCTION BAR & TOOLBARS                                          -->
     <!-- ================================================================== -->
 
-    <div class="instruction-bar">
+    <!--
+        On mobile the instruction bar has two zones:
+          .bar-collapsible  — contextual info (instruction text + step swatches).
+                              Hidden by default on mobile; toggled by #btnToggleBar.
+          #toolbar          — always visible; scrolls horizontally.
 
-        <!-- Step instruction + Step 2 background colour picker -->
-        <div class="instruction-text">
-            <span id="instructionSpan">Welcome to Extractly.</span>
-            <div id="step2SwatchContainer" class="hidden">
-                <span id="step2Swatch" class="swatch"></span>
-                <button id="btnAcceptColor" class="btn-confirm">Confirm Background</button>
+        This ensures the toolbar is never hidden or pushed off-screen, while the
+        longer instruction text stays accessible but out of the way.
+    -->
+    <div class="instruction-bar" id="instructionBar">
+
+        <!-- Toggle button — mobile only (hidden on desktop via CSS) -->
+        <button id="btnToggleBar" class="btn-toggle-bar" aria-label="Show/hide instructions">
+            <span class="toggle-icon">▾</span>
+            <span class="toggle-label">Instructions</span>
+        </button>
+
+        <!-- Collapsible zone: instruction text + step-specific context rows -->
+        <div class="bar-collapsible">
+
+            <div class="instruction-text">
+                <span id="instructionSpan">Welcome to Extractly.</span>
+                <div id="step2SwatchContainer" class="hidden">
+                    <span id="step2Swatch" class="swatch"></span>
+                    <button id="btnAcceptColor" class="btn-confirm">Confirm Background</button>
+                </div>
             </div>
-        </div>
 
-        <!-- Step 4: protected palette row -->
-        <div id="paletteDisplay" class="hidden">
-            <div class="palette-row">
-                <label style="color: var(--accent-cyan);">Protected Palette:</label>
-                <div id="swatchList"></div>
-                <button id="btnEnableSlider" class="btn-confirm" style="margin-left: auto;">Enable Cleanup Slider</button>
+            <!-- Step 4: protected palette -->
+            <div id="paletteDisplay" class="hidden">
+                <div class="palette-row">
+                    <label style="color: var(--accent-cyan);">Protected:</label>
+                    <div id="swatchList"></div>
+                    <button id="btnEnableSlider" class="btn-confirm" style="margin-left: auto;">Enable Cleanup Slider</button>
+                </div>
             </div>
-        </div>
 
-        <!-- Step 3: target colour swatch -->
-        <div id="step3SwatchContainer" class="hidden">
-            <label style="color: var(--accent-cyan);">Target Color:</label>
-            <span id="step3Swatch" class="swatch"></span>
-        </div>
+            <!-- Step 3: target colour swatch -->
+            <div id="step3SwatchContainer" class="hidden">
+                <label style="color: var(--accent-cyan);">Target Color:</label>
+                <span id="step3Swatch" class="swatch"></span>
+            </div>
 
-        <!--
-            Main toolbar — scrolls horizontally on narrow screens.
-            All tool groups use flex-shrink: 0 so they never compress;
-            the row scrolls rather than wrapping onto additional lines.
-        -->
+        </div><!-- /.bar-collapsible -->
+
+        <!-- Always-visible toolbar — scrolls horizontally -->
         <div id="toolbar" class="toolbar-row">
 
             <!-- Step 1 -->
             <div id="loadBox" class="tool-group">
                 <label>Source</label>
-                <button onclick="document.getElementById('fileInput').click()">Load Image File</button>
+                <button onclick="document.getElementById('fileInput').click()">Load Image</button>
                 <input type="file" id="fileInput" class="hidden" accept="image/*">
             </div>
 
@@ -91,13 +106,7 @@
                 <input type="color" id="targetColor" value="#000000">
             </div>
 
-            <!--
-                Steps 3–4: tolerance slider.
-                FIX: the original had a duplicate max attribute (max="1" and
-                max="100" on the same element). The correct range is 0–1 because
-                getQuadraticTol() in script.js applies a cubic curve to map this
-                to an effective range of 0–200. The stale max="100" is removed.
-            -->
+            <!-- Steps 3–4 -->
             <div id="tolBox" class="tool-group hidden">
                 <label>Tolerance (<span id="tolVal">0</span>)</label>
                 <input type="range" id="tolerance" min="0" max="1" step="0.001" value="0">
@@ -106,9 +115,9 @@
             <!-- Step 3 -->
             <div id="floodBox" class="tool-group hidden">
                 <label>Mode</label>
-                <div style="display: flex; align-items: center; gap: 5px; font-size: 10px; font-weight: bold; color: #888;">
+                <div class="flood-toggle-row">
                     <input type="checkbox" id="floodFillToggle">
-                    <span>CONTIGUOUS (FLOOD)</span>
+                    <span>Contiguous</span>
                 </div>
             </div>
 
@@ -117,39 +126,39 @@
                 <div class="tool-group">
                     <label>Template</label>
                     <select id="cropTemplate">
-                        <option value="custom">Free Draw / Move</option>
+                        <option value="custom">Free Draw</option>
                         <option value="1:1">Square (1:1)</option>
                         <option value="4:3">Standard (4:3)</option>
                         <option value="16:9">Wide (16:9)</option>
-                        <option value="bespoke">Bespoke Aspect Ratio</option>
+                        <option value="bespoke">Bespoke</option>
                     </select>
                 </div>
                 <div class="tool-group">
-                    <label>Target Aspect</label>
+                    <label>Aspect</label>
                     <div class="input-pair">
                         <input type="number" id="targetW" placeholder="W" value="0">
-                        <span>x</span>
+                        <span>×</span>
                         <input type="number" id="targetH" placeholder="H" value="0">
                     </div>
                 </div>
                 <div class="tool-group">
-                    <label>Window Size</label>
+                    <label>Size (px)</label>
                     <div class="input-pair">
                         <input type="number" id="cropW" placeholder="W" value="0">
-                        <span>x</span>
+                        <span>×</span>
                         <input type="number" id="cropH" placeholder="H" value="0">
                     </div>
                 </div>
                 <div class="tool-group">
-                    <label>Action</label>
-                    <button id="btnDownload" class="btn-download">Download Crop</button>
+                    <label>&nbsp;</label>
+                    <button id="btnDownload" class="btn-download">↓ Download</button>
                 </div>
             </div>
 
             <!-- Steps 2–5 -->
             <div id="undoBoxTool" class="tool-group hidden">
-                <label id="undoLabel">History</label>
-                <button id="btnLocalUndo" class="btn-undo">Undo Action</button>
+                <label>History</label>
+                <button id="btnLocalUndo" class="btn-undo">↩ Undo</button>
             </div>
 
         </div><!-- /#toolbar -->
@@ -163,15 +172,8 @@
 
     <!--
         .viewport is a plain overflow: auto scroll container.
-
-        .viewport-content is an inner flex div with padding: 500px. Separating
-        these two roles (scrolling vs layout+padding) fixes the browser bug where
-        a flex container with overflow: auto clips the end (right/bottom) padding,
-        preventing the canvas from being panned in those directions.
-
-        The min-width/height: max-content on .viewport-content (in CSS) is the
-        critical fix that forces the flex container to fully expand and correctly
-        include the end padding in the scrollable area.
+        .viewport-content is an inner flex+padding div — separating layout from
+        scrolling fixes the browser bug where flex+overflow clips end padding.
     -->
     <div class="viewport" id="viewport">
         <div class="viewport-content">
@@ -180,7 +182,23 @@
                 <canvas id="overlayCanvas" style="position: absolute; top: 0; left: 0; pointer-events: none;"></canvas>
             </div>
         </div>
-    </div>
+
+        <!--
+            Floating controls — overlaid on the canvas.
+            Zoom +/- work on all devices.
+            Pan mode toggle replaces the right-click pan gesture on touch devices
+            so users don't need to juggle two-finger gestures while drawing.
+        -->
+        <div id="floatingControls" class="floating-controls hidden">
+            <button id="btnPanToggle" class="float-btn float-pan" title="Toggle pan mode — tap to move the image with one finger">
+                ✥
+            </button>
+            <div class="float-divider"></div>
+            <button id="btnZoomIn"  class="float-btn" title="Zoom in">+</button>
+            <button id="btnZoomOut" class="float-btn" title="Zoom out">−</button>
+        </div>
+
+    </div><!-- /.viewport -->
 
 
     <script src="script.js"></script>
