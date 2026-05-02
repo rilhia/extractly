@@ -2,11 +2,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- maximum-scale=1 prevents iOS from auto-zooming on input focus, which
+         would fight with our own pinch-zoom implementation. user-scalable=no
+         is set for the same reason — our JS handles all zoom gestures. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Extractly - Precision Asset Extraction</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+    <!-- ================================================================== -->
+    <!-- WIZARD HEADER                                                        -->
+    <!-- ================================================================== -->
 
     <div class="wizard-header">
         <div class="brand-container">
@@ -21,7 +28,14 @@
         </div>
     </div>
 
+
+    <!-- ================================================================== -->
+    <!-- INSTRUCTION BAR & TOOLBARS                                          -->
+    <!-- ================================================================== -->
+
     <div class="instruction-bar">
+
+        <!-- Step instruction text + Step 2 background colour picker -->
         <div class="instruction-text">
             <span id="instructionSpan">Welcome to Extractly.</span>
             <div id="step2SwatchContainer" class="hidden">
@@ -30,58 +44,69 @@
             </div>
         </div>
 
+        <!-- Step 4 protected palette display -->
         <div id="paletteDisplay" class="hidden">
             <div class="palette-row">
                 <label style="color: var(--accent-cyan);">Protected Palette:</label>
                 <div id="swatchList"></div>
-                <button id="btnEnableSlider" class="btn-confirm" style="margin-left:auto;">Enable Cleanup Slider</button>
+                <button id="btnEnableSlider" class="btn-confirm" style="margin-left: auto;">Enable Cleanup Slider</button>
             </div>
         </div>
-        
-        
+
+        <!-- Step 3 target colour swatch -->
         <div id="step3SwatchContainer" class="hidden">
-    			<label style="color: var(--accent-cyan);">Target Color:</label>
-    			<span id="step3Swatch" class="swatch"></span>
-				</div>
-        
+            <label style="color: var(--accent-cyan);">Target Color:</label>
+            <span id="step3Swatch" class="swatch"></span>
+        </div>
+
+        <!-- Main toolbar — scrolls horizontally on narrow screens -->
         <div id="toolbar" class="toolbar-row">
+
+            <!-- Step 1: file loader -->
             <div id="loadBox" class="tool-group">
                 <label>Source</label>
                 <button onclick="document.getElementById('fileInput').click()">Load Image File</button>
                 <input type="file" id="fileInput" class="hidden" accept="image/*">
             </div>
 
+            <!-- Steps 2–6: zoom slider -->
             <div id="zoomBox" class="tool-group hidden">
                 <label>Zoom (<span id="zoomVal">1.0</span>x)</label>
                 <input type="range" id="zoomRange" min="0.1" max="10" step="0.05" value="1">
             </div>
 
+            <!-- Steps 2–6: workspace tint -->
             <div id="tintBox" class="tool-group hidden">
                 <label>Workspace Tint</label>
                 <input type="range" id="bgTint" min="0" max="255" value="34">
             </div>
 
+            <!-- Step 4: replacement colour picker -->
             <div id="colorPickerBox" class="tool-group hidden">
                 <label id="colorLabel">Highlight Color</label>
                 <input type="color" id="targetColor" value="#000000">
             </div>
 
+            <!-- Steps 3–4: tolerance slider -->
+            <!-- NOTE: the original markup had a duplicate max attribute (max="1"
+                 and max="100" on the same element). The correct range is 0–1
+                 because getQuadraticTol() in script.js converts it via a cubic
+                 curve to an effective range of 0–200. -->
             <div id="tolBox" class="tool-group hidden">
                 <label>Tolerance (<span id="tolVal">0</span>)</label>
-     
-                <input type="range" id="tolerance" min="0" max="1" step="0.001" value="0" max="100">
+                <input type="range" id="tolerance" min="0" max="1" step="0.001" value="0">
             </div>
-           
-           	<div id="floodBox" class="tool-group hidden">
-    					<label>Mode</label>
-    					<div style="display:flex; align-items:center; gap:5px; font-size:10px; font-weight:bold; color:#888;">
-        				<input type="checkbox" id="floodFillToggle"> 
-        				<span>CONTIGUOUS (FLOOD)</span>
-    					</div>
-						</div>
-           
-           
 
+            <!-- Step 3: flood fill / global mode toggle -->
+            <div id="floodBox" class="tool-group hidden">
+                <label>Mode</label>
+                <div style="display: flex; align-items: center; gap: 5px; font-size: 10px; font-weight: bold; color: #888;">
+                    <input type="checkbox" id="floodFillToggle">
+                    <span>CONTIGUOUS (FLOOD)</span>
+                </div>
+            </div>
+
+            <!-- Step 6: crop / export tools -->
             <div id="cropTools" class="toolbar-row hidden">
                 <div class="tool-group">
                     <label>Template</label>
@@ -115,26 +140,31 @@
                 </div>
             </div>
 
+            <!-- Steps 2–5: undo -->
             <div id="undoBoxTool" class="tool-group hidden">
                 <label id="undoLabel">History</label>
                 <button id="btnLocalUndo" class="btn-undo">Undo Action</button>
             </div>
+
+        </div><!-- /#toolbar -->
+
+    </div><!-- /.instruction-bar -->
+
+
+    <!-- ================================================================== -->
+    <!-- CANVAS VIEWPORT                                                      -->
+    <!-- ================================================================== -->
+
+    <!-- The wrapper sits inside a padded, scrollable viewport.
+         mainCanvas holds the actual image pixels.
+         overlayCanvas (pointer-events: none) draws selection boxes on top. -->
+    <div class="viewport" id="viewport">
+        <div id="wrapper" class="canvas-wrapper">
+            <canvas id="mainCanvas"></canvas>
+            <canvas id="overlayCanvas" style="position: absolute; top: 0; left: 0; pointer-events: none;"></canvas>
         </div>
     </div>
 
-   <!-- <div class="viewport" id="viewport">
-        <canvas id="overlayCanvas"></canvas>
-        <div class="canvas-wrapper hidden" id="wrapper">
-            <canvas id="mainCanvas"></canvas>
-        </div>
-    </div> -->
-    
-    <div class="viewport" id="viewport">
-    <div id="wrapper" class="canvas-wrapper">
-    <canvas id="mainCanvas"></canvas>
-    <canvas id="overlayCanvas" style="position: absolute; top: 0; left: 0; pointer-events: none;"></canvas>
-    </div>
-</div>
 
     <script src="script.js"></script>
 </body>
