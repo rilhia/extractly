@@ -1,169 +1,416 @@
-/* --- Root Variables & Theme Definition --- */
-:root { 
-    --bg: #0d0d0d; 
-    --panel: #161616; 
-    --accent-blue: #3466c1; 
-    --accent-cyan: #47b8e5; 
-    --text: #ffffff; 
-    --border: #2a2a2a; 
-    --btn-grad: linear-gradient(135deg, #3466c1 0%, #47b8e5 100%);
+/* =============================================================================
+ * Extractly — Stylesheet
+ * Supports desktop (mouse + right-click pan) and mobile (touch + pinch zoom).
+ * ============================================================================= */
+
+
+/* -------------------------------------------------------------------------- */
+/* THEME VARIABLES                                                             */
+/* -------------------------------------------------------------------------- */
+
+:root {
+    --bg:           #0d0d0d;
+    --panel:        #161616;
+    --accent-blue:  #3466c1;
+    --accent-cyan:  #47b8e5;
+    --text:         #ffffff;
+    --border:       #2a2a2a;
+    --btn-grad:     linear-gradient(135deg, #3466c1 0%, #47b8e5 100%);
+
+    /* Scroll buffer around the canvas — also referenced in fileInput.onchange
+     * in script.js (viewport.scrollLeft/Top = 500). If you change this value,
+     * update that initialisation scroll too. */
+    --canvas-margin: 500px;
 }
 
-/* --- Layout Structure --- */
-body { 
-    font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; 
-    background: var(--bg); 
-    color: var(--text); 
-    margin: 0; 
-    display: flex; 
-    flex-direction: column; 
-    height: 100vh; 
-    overflow: hidden; 
+
+/* -------------------------------------------------------------------------- */
+/* GLOBAL RESET                                                                */
+/* -------------------------------------------------------------------------- */
+
+*, *::before, *::after {
+    box-sizing: border-box;
 }
 
-.wizard-header { 
-    background: var(--panel); 
-    padding: 10px 25px; 
-    border-bottom: 1px solid var(--border); 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    z-index: 1000; 
-    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+body {
+    font-family: 'Segoe UI', Roboto, Helvetica, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+
+    /* 100dvh (dynamic viewport height) avoids the iOS Safari address-bar
+     * shrink/grow problem that causes 100vh to be taller than the real screen. */
+    height: 100dvh;
+    height: 100vh; /* fallback for browsers without dvh support */
+
+    /* Prevent the page body from scrolling — only the canvas viewport scrolls. */
+    overflow: hidden;
 }
 
-.brand-container { 
-    display: flex; 
-    align-items: center; 
-    gap: 12px; 
+
+/* -------------------------------------------------------------------------- */
+/* WIZARD HEADER                                                               */
+/* -------------------------------------------------------------------------- */
+
+.wizard-header {
+    background: var(--panel);
+    padding: 10px 25px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1000;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+
+    /* Prevent the header from growing if content wraps on very small screens */
+    flex-shrink: 0;
 }
 
-.logo-icon { height: 80px; width: 80px; object-fit: contain; }
-.logo-wordmark { height: 80px; width: auto; object-fit: contain; opacity: 0.9; }
+.brand-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0; /* Allow children to shrink below intrinsic size */
+}
+
+.logo-icon     { height: 80px; width: 80px;  object-fit: contain; }
+.logo-wordmark { height: 80px; width: auto;  object-fit: contain; opacity: 0.9; }
 
 .brand-divider {
     width: 1px;
     height: 24px;
     background: var(--border);
     margin: 0 4px;
+    flex-shrink: 0;
 }
 
-.step-indicator { 
+.step-indicator {
     margin-left: 10px;
-    font-weight: 700; 
-    color: var(--accent-cyan); 
-    text-transform: uppercase; 
-    letter-spacing: 1.5px; 
-    font-size: 13px; 
+    font-weight: 700;
+    color: var(--accent-cyan);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-size: 13px;
     border-left: 2px solid var(--accent-blue);
     padding-left: 15px;
+
+    /* Truncate on very narrow screens rather than pushing nav buttons off-screen */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
 }
 
-/* --- Instructional & Toolbars --- */
-.instruction-bar { 
-    background: #1a1a1a; 
-    padding: 15px 25px; 
-    border-bottom: 1px solid var(--border); 
-    display: flex; 
-    flex-direction: column; 
-    gap: 12px; 
-    z-index: 1000; 
+.nav-btns {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
 }
 
-.instruction-text { font-size: 14px; color: #bbb; min-height: 1.4em; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+
+/* -------------------------------------------------------------------------- */
+/* INSTRUCTION BAR                                                             */
+/* -------------------------------------------------------------------------- */
+
+.instruction-bar {
+    background: #1a1a1a;
+    padding: 15px 25px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 1000;
+
+    /* Prevent the bar from growing and pushing the canvas viewport out of view.
+     * It will scroll internally if content is taller than this. */
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.instruction-text {
+    font-size: 14px;
+    color: #bbb;
+    min-height: 1.4em;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
 .instruction-text b { color: var(--accent-cyan); }
 
-.toolbar-row { display: flex; gap: 25px; align-items: center; flex-wrap: wrap; }
-.tool-group { display: flex; flex-direction: column; gap: 4px; }
-.input-pair { display: flex; gap: 2px; align-items: center; }
+/* The toolbar row scrolls horizontally instead of wrapping vertically.
+ * Wrapping was the root cause of buttons being pushed off-screen on mobile,
+ * because body { overflow: hidden } would silently clip anything below 100vh. */
+.toolbar-row {
+    display: flex;
+    gap: 25px;
+    align-items: center;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
 
-/* --- Interaction Viewport --- */
-
-/*
-.viewport { 
-    flex: 1; 
-    overflow: auto; 
-    background: #050505; 
-    position: relative; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center;
-    padding: 500px; 
+    /* Hide the scrollbar visually — it's still scrollable by swipe/drag */
+    scrollbar-width: none;
+    padding-bottom: 4px; /* Prevents clipping of button drop-shadows */
 }
 
-.canvas-wrapper { 
-    position: relative; 
-    box-shadow: 0 0 60px rgba(0,0,0,1); 
+.toolbar-row::-webkit-scrollbar { display: none; }
+
+.tool-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex-shrink: 0; /* Prevent groups from compressing — scroll instead */
+}
+
+.input-pair {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+}
+
+.palette-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+
+/* -------------------------------------------------------------------------- */
+/* CANVAS VIEWPORT                                                             */
+/* -------------------------------------------------------------------------- */
+
+.viewport {
+    flex: 1;
+    overflow: auto;
+    background: #050505;
+    position: relative;
+
+    /* Scroll from top-left so the canvas margin produces equal space on all sides
+     * when the user pans. align-items/justify-content: center would re-centre
+     * the content on every scroll event in some browsers. */
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+
+    /* Padding creates the scroll buffer so the canvas can be panned in all
+     * directions. See --canvas-margin note in :root above. */
+    padding: var(--canvas-margin);
+
+    /* Disable browser-native touch handling so our JS touch listeners
+     * receive all touch events without interference. Required on iOS Safari. */
+    touch-action: none;
+}
+
+.canvas-wrapper {
+    position: relative;
+    box-shadow: 0 0 60px rgba(0, 0, 0, 1);
     background: repeating-conic-gradient(#111 0% 25%, #181818 0% 50%) 50% / 20px 20px;
     z-index: 1;
     border: 1px solid #222;
+    flex-shrink: 0; /* Prevent the wrapper from shrinking inside the flex viewport */
 }
 
-*/
-
-
-.canvas-wrapper { 
-    position: relative; 
-    box-shadow: 0 0 60px rgba(0,0,0,1); 
-    background: repeating-conic-gradient(#111 0% 25%, #181818 0% 50%) 50% / 20px 20px;
-    z-index: 1;
-    border: 1px solid #222;
-    /* Remove transform-origin and transform from here */
+canvas#mainCanvas {
+    display: block;
 }
 
-/* Ensure the viewport uses a flex-start alignment so zoom grows from the top-left */
-.viewport { 
-    flex: 1; 
-    overflow: auto; 
-    background: #050505; 
-    position: relative; 
-    display: flex; 
-    align-items: flex-start; /* Changed from center to allow scrolling to top */
-    justify-content: flex-start; /* Changed from center */
-    padding: 500px; 
+/* The overlay sits exactly on top of the main canvas and captures no pointer
+ * events — all interaction goes through the viewport listeners instead. */
+canvas#overlayCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 500;
 }
 
 
+/* -------------------------------------------------------------------------- */
+/* BUTTONS                                                                     */
+/* -------------------------------------------------------------------------- */
 
-
-
-
-
-canvas#mainCanvas { display: block; }
-
-/* Fixed overlay canvas allows drawing/selection boxes to appear on top of scrollable area */
-canvas#overlayCanvas { 
-    position: absolute; 
-    top: 0; 
-    left: 0; 
-    width: 100%; 
-    height: 100%; 
-    pointer-events: none; 
-    z-index: 500; 
+button {
+    cursor: pointer;
+    padding: 10px 22px;
+    border: none;
+    border-radius: 5px;
+    background: var(--btn-grad);
+    color: white;
+    font-weight: 700;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    text-transform: uppercase;
+    font-size: 11px;
+    white-space: nowrap; /* Prevent button labels from wrapping */
+    flex-shrink: 0;
 }
 
-/* --- UI Components (Buttons/Inputs) --- */
-button { 
-    cursor: pointer; padding: 10px 22px; border: none; border-radius: 5px; 
-    background: var(--btn-grad); color: white; font-weight: 700; 
-    transition: all 0.2s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    text-transform: uppercase; font-size: 11px;
+button:hover:not(:disabled) {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
 }
-button:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-1px); }
-button:disabled { background: #333 !important; color: #666; cursor: not-allowed; box-shadow: none; transform: none; border: 1px solid #444; }
 
-.btn-back { background: transparent; border: 1px solid #444; color: #888; }
-.btn-confirm { background: var(--btn-grad); padding: 8px 15px; font-size: 13px; }
+button:disabled {
+    background: #333 !important;
+    color: #666;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+    border: 1px solid #444;
+}
+
+.btn-back     { background: transparent; border: 1px solid #444; color: #888; }
+.btn-confirm  { background: var(--btn-grad); padding: 8px 15px; font-size: 13px; }
 .btn-download { background: var(--btn-grad); border: 1px solid #fff; }
-.btn-undo { background: #444; font-size: 11px; padding: 5px 10px; }
+.btn-undo     { background: #444; font-size: 11px; padding: 5px 10px; }
 
-input[type="range"] { accent-color: var(--accent-cyan); width: 120px; }
-input[type="range"]#tolerance { 
-    width: 240px; 
+
+/* -------------------------------------------------------------------------- */
+/* FORM CONTROLS                                                               */
+/* -------------------------------------------------------------------------- */
+
+input[type="range"] {
+    accent-color: var(--accent-cyan);
+    width: 120px;
 }
-input[type="color"] { background: #333; border: 1px solid #444; height: 30px; cursor: pointer; width: 60px; }
-input[type="number"], select { background: #222; border: 1px solid #333; color: #fff; padding: 6px; border-radius: 4px; font-weight: 600; width: 65px; }
 
-.swatch { width: 22px; height: 22px; border-radius: 50%; border: 2px solid white; display: inline-block; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
+/* Tolerance slider is wider than other sliders on desktop.
+ * On narrow screens the toolbar scrolls, so this won't cause layout issues. */
+input[type="range"]#tolerance {
+    width: 240px;
+}
+
+input[type="color"] {
+    background: #333;
+    border: 1px solid #444;
+    height: 30px;
+    cursor: pointer;
+    width: 60px;
+}
+
+input[type="number"],
+select {
+    background: #222;
+    border: 1px solid #333;
+    color: #fff;
+    padding: 6px;
+    border-radius: 4px;
+    font-weight: 600;
+    width: 65px;
+}
+
+label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.swatch {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid white;
+    display: inline-block;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    flex-shrink: 0;
+}
+
 .hidden { display: none !important; }
 
+
+/* -------------------------------------------------------------------------- */
+/* RESPONSIVE — MOBILE & TABLET (max-width: 768px)                            */
+/* -------------------------------------------------------------------------- */
+
+@media (max-width: 768px) {
+
+    /* Shrink the logos so the header fits in ~56px instead of ~100px.
+     * This recovers ~44px of vertical space — significant on a 844px screen. */
+    .logo-icon,
+    .logo-wordmark {
+        height: 36px;
+        width: auto;
+    }
+
+    .wizard-header {
+        padding: 8px 12px;
+    }
+
+    .brand-divider {
+        height: 18px;
+    }
+
+    .step-indicator {
+        font-size: 10px;
+        letter-spacing: 0.8px;
+        padding-left: 10px;
+        max-width: 140px;
+    }
+
+    .instruction-bar {
+        padding: 8px 12px;
+        gap: 6px;
+    }
+
+    .instruction-text {
+        font-size: 12px;
+        gap: 10px;
+    }
+
+    /* On mobile the tolerance slider can be shorter since the user can
+     * interact with it more precisely at this scale anyway */
+    input[type="range"]#tolerance {
+        width: 160px;
+    }
+
+    /* Tighten up button padding so more fit in the scrollable toolbar */
+    button {
+        padding: 8px 14px;
+        font-size: 10px;
+    }
+
+    .btn-confirm {
+        padding: 6px 12px;
+        font-size: 11px;
+    }
+}
+
+
+/* -------------------------------------------------------------------------- */
+/* RESPONSIVE — VERY SMALL SCREENS (max-width: 400px)                         */
+/* -------------------------------------------------------------------------- */
+
+@media (max-width: 400px) {
+
+    /* Hide the wordmark on very small screens, keep only the icon */
+    .logo-wordmark {
+        display: none;
+    }
+
+    .logo-icon {
+        height: 32px;
+        width: 32px;
+    }
+
+    .step-indicator {
+        font-size: 9px;
+        max-width: 110px;
+    }
+
+    input[type="range"]#tolerance {
+        width: 130px;
+    }
+
+    input[type="range"] {
+        width: 90px;
+    }
+}
