@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <!-- maximum-scale=1 prevents iOS from auto-zooming on input focus, which
-         would fight with our own pinch-zoom implementation. user-scalable=no
-         is set for the same reason — our JS handles all zoom gestures. -->
+    <!--
+        maximum-scale=1 / user-scalable=no: prevents iOS from auto-zooming on
+        input tap, which would fight with our own pinch-zoom implementation.
+    -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Extractly - Precision Asset Extraction</title>
     <link rel="stylesheet" href="style.css">
@@ -35,7 +36,7 @@
 
     <div class="instruction-bar">
 
-        <!-- Step instruction text + Step 2 background colour picker -->
+        <!-- Step instruction + Step 2 background colour picker -->
         <div class="instruction-text">
             <span id="instructionSpan">Welcome to Extractly.</span>
             <div id="step2SwatchContainer" class="hidden">
@@ -44,7 +45,7 @@
             </div>
         </div>
 
-        <!-- Step 4 protected palette display -->
+        <!-- Step 4: protected palette row -->
         <div id="paletteDisplay" class="hidden">
             <div class="palette-row">
                 <label style="color: var(--accent-cyan);">Protected Palette:</label>
@@ -53,51 +54,56 @@
             </div>
         </div>
 
-        <!-- Step 3 target colour swatch -->
+        <!-- Step 3: target colour swatch -->
         <div id="step3SwatchContainer" class="hidden">
             <label style="color: var(--accent-cyan);">Target Color:</label>
             <span id="step3Swatch" class="swatch"></span>
         </div>
 
-        <!-- Main toolbar — scrolls horizontally on narrow screens -->
+        <!--
+            Main toolbar — scrolls horizontally on narrow screens.
+            All tool groups use flex-shrink: 0 so they never compress;
+            the row scrolls rather than wrapping onto additional lines.
+        -->
         <div id="toolbar" class="toolbar-row">
 
-            <!-- Step 1: file loader -->
+            <!-- Step 1 -->
             <div id="loadBox" class="tool-group">
                 <label>Source</label>
                 <button onclick="document.getElementById('fileInput').click()">Load Image File</button>
                 <input type="file" id="fileInput" class="hidden" accept="image/*">
             </div>
 
-            <!-- Steps 2–6: zoom slider -->
+            <!-- Steps 2–6 -->
             <div id="zoomBox" class="tool-group hidden">
                 <label>Zoom (<span id="zoomVal">1.0</span>x)</label>
                 <input type="range" id="zoomRange" min="0.1" max="10" step="0.05" value="1">
             </div>
 
-            <!-- Steps 2–6: workspace tint -->
             <div id="tintBox" class="tool-group hidden">
                 <label>Workspace Tint</label>
                 <input type="range" id="bgTint" min="0" max="255" value="34">
             </div>
 
-            <!-- Step 4: replacement colour picker -->
+            <!-- Step 4 -->
             <div id="colorPickerBox" class="tool-group hidden">
                 <label id="colorLabel">Highlight Color</label>
                 <input type="color" id="targetColor" value="#000000">
             </div>
 
-            <!-- Steps 3–4: tolerance slider -->
-            <!-- NOTE: the original markup had a duplicate max attribute (max="1"
-                 and max="100" on the same element). The correct range is 0–1
-                 because getQuadraticTol() in script.js converts it via a cubic
-                 curve to an effective range of 0–200. -->
+            <!--
+                Steps 3–4: tolerance slider.
+                FIX: the original had a duplicate max attribute (max="1" and
+                max="100" on the same element). The correct range is 0–1 because
+                getQuadraticTol() in script.js applies a cubic curve to map this
+                to an effective range of 0–200. The stale max="100" is removed.
+            -->
             <div id="tolBox" class="tool-group hidden">
                 <label>Tolerance (<span id="tolVal">0</span>)</label>
                 <input type="range" id="tolerance" min="0" max="1" step="0.001" value="0">
             </div>
 
-            <!-- Step 3: flood fill / global mode toggle -->
+            <!-- Step 3 -->
             <div id="floodBox" class="tool-group hidden">
                 <label>Mode</label>
                 <div style="display: flex; align-items: center; gap: 5px; font-size: 10px; font-weight: bold; color: #888;">
@@ -106,7 +112,7 @@
                 </div>
             </div>
 
-            <!-- Step 6: crop / export tools -->
+            <!-- Step 6: crop / export -->
             <div id="cropTools" class="toolbar-row hidden">
                 <div class="tool-group">
                     <label>Template</label>
@@ -140,7 +146,7 @@
                 </div>
             </div>
 
-            <!-- Steps 2–5: undo -->
+            <!-- Steps 2–5 -->
             <div id="undoBoxTool" class="tool-group hidden">
                 <label id="undoLabel">History</label>
                 <button id="btnLocalUndo" class="btn-undo">Undo Action</button>
@@ -155,13 +161,24 @@
     <!-- CANVAS VIEWPORT                                                      -->
     <!-- ================================================================== -->
 
-    <!-- The wrapper sits inside a padded, scrollable viewport.
-         mainCanvas holds the actual image pixels.
-         overlayCanvas (pointer-events: none) draws selection boxes on top. -->
+    <!--
+        .viewport is a plain overflow: auto scroll container.
+
+        .viewport-content is an inner flex div with padding: 500px. Separating
+        these two roles (scrolling vs layout+padding) fixes the browser bug where
+        a flex container with overflow: auto clips the end (right/bottom) padding,
+        preventing the canvas from being panned in those directions.
+
+        The min-width/height: max-content on .viewport-content (in CSS) is the
+        critical fix that forces the flex container to fully expand and correctly
+        include the end padding in the scrollable area.
+    -->
     <div class="viewport" id="viewport">
-        <div id="wrapper" class="canvas-wrapper">
-            <canvas id="mainCanvas"></canvas>
-            <canvas id="overlayCanvas" style="position: absolute; top: 0; left: 0; pointer-events: none;"></canvas>
+        <div class="viewport-content">
+            <div id="wrapper" class="canvas-wrapper">
+                <canvas id="mainCanvas"></canvas>
+                <canvas id="overlayCanvas" style="position: absolute; top: 0; left: 0; pointer-events: none;"></canvas>
+            </div>
         </div>
     </div>
 
