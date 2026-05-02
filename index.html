@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extractly - Precision Asset Extraction</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="wizard-header">
+        <div class="brand-container">
+            <img src="images/ExtractlyIcon.png" class="logo-icon" alt="Extractly Icon">
+            <div class="brand-divider"></div>
+            <img src="images/ExtractlyText.png" class="logo-wordmark" alt="Extractly">
+            <div id="stepTitle" class="step-indicator">Step 1: Load Image</div>
+        </div>
+        <div class="nav-btns">
+            <button id="btnBack" class="btn-back" disabled>Back</button>
+            <button id="btnNext" disabled>Next Step</button>
+        </div>
+    </div>
+
+    <div class="instruction-bar">
+        <div class="instruction-text">
+            <span id="instructionSpan">Welcome to Extractly.</span>
+            <div id="step2SwatchContainer" class="hidden">
+                <span id="step2Swatch" class="swatch"></span>
+                <button id="btnAcceptColor" class="btn-confirm">Confirm Background</button>
+            </div>
+        </div>
+
+        <div id="paletteDisplay" class="hidden">
+            <div class="palette-row">
+                <label style="color: var(--accent-cyan);">Protected Palette:</label>
+                <div id="swatchList"></div>
+                <button id="btnEnableSlider" class="btn-confirm" style="margin-left:auto;">Enable Cleanup Slider</button>
+            </div>
+        </div>
+        
+        
+        <div id="step3SwatchContainer" class="hidden">
+    			<label style="color: var(--accent-cyan);">Target Color:</label>
+    			<span id="step3Swatch" class="swatch"></span>
+				</div>
+        
+        <div id="toolbar" class="toolbar-row">
+            <div id="loadBox" class="tool-group">
+                <label>Source</label>
+                <button onclick="document.getElementById('fileInput').click()">Load Image File</button>
+                <input type="file" id="fileInput" class="hidden" accept="image/*">
+            </div>
+
+            <div id="zoomBox" class="tool-group hidden">
+                <label>Zoom (<span id="zoomVal">1.0</span>x)</label>
+                <input type="range" id="zoomRange" min="0.1" max="10" step="0.05" value="1">
+            </div>
+
+            <div id="tintBox" class="tool-group hidden">
+                <label>Workspace Tint</label>
+                <input type="range" id="bgTint" min="0" max="255" value="34">
+            </div>
+
+            <div id="colorPickerBox" class="tool-group hidden">
+                <label id="colorLabel">Highlight Color</label>
+                <input type="color" id="targetColor" value="#000000">
+            </div>
+
+            <div id="tolBox" class="tool-group hidden">
+                <label>Tolerance (<span id="tolVal">0</span>)</label>
+     
+                <input type="range" id="tolerance" min="0" max="1" step="0.001" value="0" max="100">
+            </div>
+           
+           	<div id="floodBox" class="tool-group hidden">
+    					<label>Mode</label>
+    					<div style="display:flex; align-items:center; gap:5px; font-size:10px; font-weight:bold; color:#888;">
+        				<input type="checkbox" id="floodFillToggle"> 
+        				<span>CONTIGUOUS (FLOOD)</span>
+    					</div>
+						</div>
+           
+           
+
+            <div id="cropTools" class="toolbar-row hidden">
+                <div class="tool-group">
+                    <label>Template</label>
+                    <select id="cropTemplate">
+                        <option value="custom">Free Draw / Move</option>
+                        <option value="1:1">Square (1:1)</option>
+                        <option value="4:3">Standard (4:3)</option>
+                        <option value="16:9">Wide (16:9)</option>
+                        <option value="bespoke">Bespoke Aspect Ratio</option>
+                    </select>
+                </div>
+                <div class="tool-group">
+                    <label>Target Aspect</label>
+                    <div class="input-pair">
+                        <input type="number" id="targetW" placeholder="W" value="0">
+                        <span>x</span>
+                        <input type="number" id="targetH" placeholder="H" value="0">
+                    </div>
+                </div>
+                <div class="tool-group">
+                    <label>Window Size</label>
+                    <div class="input-pair">
+                        <input type="number" id="cropW" placeholder="W" value="0">
+                        <span>x</span>
+                        <input type="number" id="cropH" placeholder="H" value="0">
+                    </div>
+                </div>
+                <div class="tool-group">
+                    <label>Action</label>
+                    <button id="btnDownload" class="btn-download">Download Crop</button>
+                </div>
+            </div>
+
+            <div id="undoBoxTool" class="tool-group hidden">
+                <label id="undoLabel">History</label>
+                <button id="btnLocalUndo" class="btn-undo">Undo Action</button>
+            </div>
+        </div>
+    </div>
+
+   <!-- <div class="viewport" id="viewport">
+        <canvas id="overlayCanvas"></canvas>
+        <div class="canvas-wrapper hidden" id="wrapper">
+            <canvas id="mainCanvas"></canvas>
+        </div>
+    </div> -->
+    
+    <div class="viewport" id="viewport">
+    <div id="wrapper" class="canvas-wrapper">
+    <canvas id="mainCanvas"></canvas>
+    <canvas id="overlayCanvas" style="position: absolute; top: 0; left: 0; pointer-events: none;"></canvas>
+    </div>
+</div>
+
+    <script src="script.js"></script>
+</body>
+</html>
