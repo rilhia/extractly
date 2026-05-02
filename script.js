@@ -67,6 +67,13 @@ let startX, startY;
 /** Seed data {x, y, color} for the active flood fill operation (Step 3). */
 let floodSeed = null;
 
+/**
+ * When true, a single touch finger pans the viewport instead of triggering
+ * the current step action. Toggled by the floating pan button on touch devices.
+ * Replaces the right-click pan gesture, which isn't available on touchscreens.
+ */
+let panModeActive = false;
+
 /** Clean image snapshot captured immediately before a flood fill, enabling
  *  live tolerance preview without re-running from scratch each time. */
 let preFloodImageData = null;
@@ -313,6 +320,10 @@ function updateStepUI() {
     cropRect.active = false;
     drawFrame();
     updateStepSettings();
+
+    // Show floating controls once an image is loaded (Step 2+)
+    const fc = document.getElementById('floatingControls');
+    if (fc) fc.classList.toggle('hidden', currentStep === 1 || !baseImageData);
 }
 
 /**
@@ -328,6 +339,11 @@ function updateStepSettings() {
     lastAnchorColor   = null;
     step4Armed        = false;
     floodSeed         = null;
+
+    // Reset pan mode so it doesn't carry over between steps
+    panModeActive = false;
+    const panBtn = document.getElementById('btnPanToggle');
+    if (panBtn) panBtn.classList.remove('pan-active');
 
     const palBtn = document.getElementById('btnEnableSlider');
     palBtn.disabled  = false;
@@ -1011,6 +1027,17 @@ viewport.addEventListener('touchstart', (e) => {
     }
 
     const touch = e.touches[0];
+
+    // Pan mode: single finger pans the viewport (same as right-click drag on desktop).
+    // This lets users move the image without needing awkward two-finger drag while
+    // simultaneously trying to draw or pick a colour on a small screen.
+    if (panModeActive) {
+        isPanning = true;
+        startX    = touch.clientX;
+        startY    = touch.clientY;
+        return;
+    }
+
     viewport.onmousedown({ button: 0, clientX: touch.clientX, clientY: touch.clientY });
 
 }, { passive: false });
@@ -1084,6 +1111,54 @@ window.addEventListener('touchend', (e) => {
     const touch = e.changedTouches[0];
     window.onmouseup({ clientX: touch.clientX, clientY: touch.clientY });
 });
+
+
+/* -------------------------------------------------------------------------- */
+/* FLOATING CONTROLS & MOBILE UI                                              */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Pan mode toggle — switches single-finger touch between step action and pan.
+ *
+ * When active, one finger drags the viewport freely. When off, one finger
+ * triggers the current step's interaction (draw box, pick colour, etc.).
+ * Two-finger drag always pans regardless of this setting.
+ */
+document.getElementById('btnPanToggle').onclick = () => {
+    panModeActive = !panModeActive;
+    document.getElementById('btnPanToggle').classList.toggle('pan-active', panModeActive);
+};
+
+/**
+ * Zoom in — increments zoom by 0.25 and syncs the range slider.
+ */
+document.getElementById('btnZoomIn').onclick = () => {
+    const range = document.getElementById('zoomRange');
+    currentZoom = Math.min(parseFloat(range.max), parseFloat((currentZoom + 0.25).toFixed(2)));
+    range.value = currentZoom;
+    document.getElementById('zoomVal').innerText = currentZoom.toFixed(2);
+    drawFrame();
+};
+
+/**
+ * Zoom out — decrements zoom by 0.25 and syncs the range slider.
+ */
+document.getElementById('btnZoomOut').onclick = () => {
+    const range = document.getElementById('zoomRange');
+    currentZoom = Math.max(parseFloat(range.min), parseFloat((currentZoom - 0.25).toFixed(2)));
+    range.value = currentZoom;
+    document.getElementById('zoomVal').innerText = currentZoom.toFixed(2);
+    drawFrame();
+};
+
+/**
+ * Instruction bar collapse toggle (mobile only).
+ * Toggles .bar-open on the instruction bar, which CSS uses to show/hide
+ * the .bar-collapsible zone containing instruction text and step swatches.
+ */
+document.getElementById('btnToggleBar').onclick = () => {
+    document.getElementById('instructionBar').classList.toggle('bar-open');
+};
 
 
 /* -------------------------------------------------------------------------- */
