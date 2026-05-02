@@ -151,10 +151,11 @@ body {
     font-size: 13px;
     color: #bbb;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 12px;
     flex-wrap: wrap;
     padding-bottom: 4px;
+    line-height: 1.6;
 }
 
 .instruction-text b { color: var(--accent-cyan); }
@@ -489,6 +490,8 @@ select { width: auto; min-width: 100px; }
         padding: 8px 12px 4px;
         border-bottom: 1px solid var(--border);
         animation: slideDown 0.15s ease;
+        max-height: 38vh;   /* Cap at ~38% of screen height */
+        overflow-y: auto;   /* Scroll rather than pushing toolbar off-screen */
     }
 
     .instruction-bar.bar-open .bar-collapsible {
