@@ -133,32 +133,31 @@ const stepConfig = [
     {
         title: "Step 1: Load Your Image",
         inst:  `Load the image you want to extract an asset from. 
-                <b>Extractly works best on clean, flat-colour images</b> — property floorplans 
+                <b>Extractly works best on clean, flat-colour images</b> - property floorplans 
                 (from sites like Zoopla or Rightmove), architectural diagrams, icons, and logos. 
                 It uses <b>colour-matching maths, not AI</b>, so sharply defined colour boundaries 
                 give the best results. Photographs with gradients or complex backgrounds can still 
                 be processed, but may need several passes through the steps. 
-                <b>Tip:</b> if your floorplan is inside a PDF, take a screenshot or export it as a PNG first — 
-                the higher the resolution, the more precise your extraction.`
+                <b>Tip:</b> if your image is inside a PDF, take a screenshot or export it as a PNG first. 
+                The higher the resolution, the more precise your extraction.`
     },
     {
-        title: "Step 2: Redact Unwanted Content",
-        inst:  `Cover up text, logos, room labels, or any other content you want to remove before 
+        title: "Step 2: Remove Unwanted Content",
+        inst:  `Cover up text, logos, labels, or any other content you want to remove before 
                 background extraction. 
                 <b>First, click the background area</b> of the image to sample its colour — 
-                a swatch will appear so you can confirm it's correct, then click <i>Confirm Background</i>. 
+                the colour will appear so you can confirm it's correct, then click <i>Confirm Background</i>. 
                 <b>Then draw boxes</b> over anything you want to paint out. Each box is filled with 
                 the background colour you just sampled, seamlessly hiding the content underneath. 
-                <b>Why do this now?</b> Floorplans from property sites often contain agent branding, 
-                compass roses, room dimensions, or scale bars. Removing these before background 
-                removal gives you a cleaner extraction with fewer artefacts. 
+                <b>Why do this now?</b> It's a simplification process. If we first cover content we do not want using the background colour, it'll be rendered transparent 
+                when we get to remove the background.  
                 Use <i>Undo</i> to remove the last box if needed.`
     },
     {
         title: "Step 3: Remove the Background",
         inst:  `Make the background transparent. <b>Click anywhere on the background colour</b> you want to 
-                remove — a colour swatch confirms your selection. Then <b>drag the Tolerance slider</b> 
-                rightward to expand how many similar shades are included in the removal. 
+                remove. The chosen colour will be shown. Then <b>play with the Tolerance slider</b> 
+                to remove the content. 
                 <b>Contiguous mode</b> (flood fill): only removes pixels <i>connected</i> to where you clicked — 
                 ideal for removing a clean white background without touching white areas inside the floorplan. 
                 <b>Global mode</b> (checkbox off): removes that colour everywhere in the image — 
@@ -170,41 +169,32 @@ const stepConfig = [
     {
         title: "Step 4: Colour Cleanup",
         inst:  `Fine-tune the result by protecting the colours you want to keep, then erasing everything else. 
-                <b>Click on each colour in your image that you want to preserve</b> — room fill colours, 
-                wall lines, furniture outlines. Each click adds a swatch to the Protected Palette. 
+                <b>Click on each colour in your image that you want to preserve</b>. Each click adds the colour to the Protected Palette. 
                 Build up as many colours as needed. 
+                Now select a replacement colour. This can be used if you process the image again to be removed in Step 3.
                 When your palette is complete, click <i>Enable Cleanup Slider</i> and then 
-                <b>slowly drag the Tolerance slider</b> — pixels that don't match any protected colour 
-                will be removed. This is especially useful for clearing residual fringe pixels or 
-                off-white noise left over from Step 3. 
-                <b>Tip for floorplans:</b> protect the wall colour first (usually black or dark grey), 
-                then room fill colours, then any feature colours like staircases or wet rooms. 
-                Use <i>Undo</i> to step back if the slider removes too much.`
+                <b>slowly drag the Tolerance slider</b>. Pixels that don't match any protected colour 
+                will be converted to the replacement colour. 
+                This is especially useful for clearing residual fringe pixels or 
+                off-white noise left over from Step 3.`
     },
     {
         title: "Step 5: Blemish Removal",
         inst:  `Erase any remaining artefacts by drawing boxes around them. 
-                Anything inside a box is made fully transparent — this is a precision eraser 
+                Anything inside a box is made fully transparent. This is a precision eraser 
                 for spots, stray lines, leftover text fragments, or scan noise that survived the 
                 previous steps. <b>Zoom in</b> using the slider or the <b>+</b> button to work precisely 
-                on small areas. 
-                <b>Pan mode</b> (the ✥ button, touch devices): tap it to switch your finger from 
-                drawing to moving the canvas — useful when zoomed in and navigating between blemishes. 
-                Use <i>Undo</i> to restore the last erased area if you overshoot.`
+                on small areas.`
     },
     {
         title: "Step 6: Export Your Asset",
         inst:  `Crop and download the finished asset. 
                 <b>Choose a template</b> from the dropdown to lock an aspect ratio, or use 
                 <i>Free Draw</i> to select any region. If you've entered a target pixel size, 
-                a fixed-size crop window will follow your finger/cursor — click to place it, 
+                a fixed-size crop window will follow your finger/cursor. Click to place it, 
                 then drag to reposition. 
-                <b>Download Crop</b> saves the selected region as a transparent PNG. 
-                <b>For Home Assistant floorplans:</b> export the whole plan as one asset, or 
-                export individual rooms as separate assets for use as background images in 
-                Lovelace picture-elements or custom floorplan cards. Each exported PNG carries 
-                full transparency, so it will layer cleanly over coloured room backgrounds in your dashboard. 
-                Click <i>New File</i> to start over with a fresh image.`
+                <b>Download Crop</b> saves the selected region as a transparent PNG.
+                You can extract as many assets as you choose from this.`
     }
 ];
 
