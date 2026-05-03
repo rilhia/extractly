@@ -2,7 +2,9 @@
 
 **Precision asset extraction from flat-colour images — no AI, no server, no signup.**
 
-![Step 1 — Load Image](images/ExtractlyLogoReadme.png)
+![Extractly](images/ExtractlyLogoReadme.png)
+
+🔗 **[Try it live → rilhia.github.io/extractly](https://rilhia.github.io/extractly/)**
 
 ---
 
@@ -63,12 +65,12 @@ Requires a browser with Canvas API and `createImageData` support — all modern 
 
 ## Getting Started
 
-Extractly requires no build step, no package manager, and no server. Just open the file.
+Extractly requires no build step, no package manager, and no server. You can use the [live version](https://rilhia.github.io/extractly/) directly, or run it locally.
 
 ### Option 1 — Run locally
 
 ```bash
-git clone https://github.com/yourusername/extractly.git
+git clone https://github.com/rilhia/extractly.git
 cd extractly
 ```
 
@@ -147,7 +149,7 @@ Fine-tune the result after background removal. This step lets you define which c
 
 **Running the cleanup:**
 
-3. Select a **replacement colour** using the colour picker. This is what unprotected pixels will be converted to (usually white or a bright colour you can easily remove in a follow-up pass through Step 3).
+3. Select a **replacement colour** using the colour picker. This is what unprotected pixels will be converted to — usually white or a bright colour you can easily remove in a follow-up pass through Step 3.
 4. Click **Enable Cleanup Slider** when your palette is complete.
 5. **Slowly drag the Tolerance slider**. Pixels that don't match any protected colour will be converted to the replacement colour. This is particularly effective at clearing fringe pixels and anti-aliasing noise that survived Step 3.
 
@@ -169,7 +171,7 @@ A precision eraser for anything that survived the previous steps.
 
 ### Step 6 — Export Your Asset
 
-Crop and download the finished results as transparent PNGs. You can convert any part of the resultant image as an image in its own right.
+Crop and download the finished results as transparent PNGs. You can export any part of the processed image as its own file — as many times as you like.
 
 **Choosing your crop:**
 
@@ -188,7 +190,9 @@ When you're done, click **New File** to start over.
 
 ---
 
-## Desktop Controls
+## Controls Reference
+
+### Desktop
 
 | Action | Input |
 |---|---|
@@ -196,7 +200,7 @@ When you're done, click **New File** to start over.
 | Pan the canvas | Right-click drag |
 | Zoom | Zoom slider in toolbar |
 
-## Touch Controls
+### Touch
 
 | Action | Gesture |
 |---|---|
@@ -216,7 +220,8 @@ extractly/
 ├── script.js       # All application logic
 └── images/
     ├── ExtractlyIcon.png
-    └── ExtractlyText.png
+    ├── ExtractlyText.png
+    └── ExtractlyLogoReadme.png
 ```
 
 No build tools, no dependencies, no `node_modules`. It's just files.
