@@ -8,18 +8,18 @@
 
 ## Why I Built This
 
-I'm building a [Home Assistant](https://www.home-assistant.io/) floorplan card generator — a tool that lets you turn a property floorplan into a fully interactive Lovelace dashboard, complete with room-level presence detection, lighting controls, and energy monitoring.
+I'm building a [Home Assistant](https://www.home-assistant.io/) floorplan card generator. A tool that lets you turn a property floorplan into a fully interactive dashboard, complete with room-level lighting controls and energy monitoring.
 
-The problem I kept running into was *source material*. Property floorplans from sites like [Zoopla](https://www.zoopla.co.uk/) and [Rightmove](https://www.rightmove.co.uk/) are the most readily available floor plans most people have access to, but they come loaded with agent branding, room labels, scale bars, and white backgrounds — none of which you want in a dashboard asset.
+The problem I kept running into was *source material*. Property floorplans from sites like [Zoopla](https://www.zoopla.co.uk/) and [Rightmove](https://www.rightmove.co.uk/) are the most readily available floor plans most people have access to, but they come loaded with agent branding, room labels, scale bars, and white backgrounds. None of which you want in a dashboard asset.
 
 I needed a way to:
 - Strip out unwanted text and branding
-- Remove the background cleanly
+- Remove the background cleanly to leave it transparent
 - Export individual rooms or the whole plan as transparent PNGs
 
-Every existing tool I looked at either required uploading to a server, used AI background removal that struggled with architectural line drawings, or cost money. So I built Extractly.
+Every existing tool I looked at either required uploading to a server, used AI background removal that struggled with architectural line drawings, or cost money. So I built the code for Extractly.
 
-Once it was working well I realised it was useful beyond just floorplans — logos, icons, diagrams, and any flat-colour image can be processed through the same pipeline — so I'm releasing it as a standalone tool.
+Once it was working well I realised it was useful beyond just floorplans. Logos, icons, diagrams, and any flat-colour image can be processed through the same pipeline. So I'm releasing it as a standalone tool.
 
 ---
 
@@ -169,7 +169,7 @@ A precision eraser for anything that survived the previous steps.
 
 ### Step 6 — Export Your Asset
 
-Crop and download the finished result as a transparent PNG.
+Crop and download the finished results as transparent PNGs. You can convert any part of the resultant image as an image in its own right.
 
 **Choosing your crop:**
 
@@ -185,8 +185,6 @@ Click **↓ Download** to save the selected region as `Extractly_Export.png`.
 **You can make as many exports as you like** from the same processed image — reposition the crop box and download again. Each export is independent.
 
 When you're done, click **New File** to start over.
-
-> **For Home Assistant users:** Export the full plan as a single asset, or export individual rooms as separate PNGs. Each file carries full transparency so it layers cleanly over coloured room backgrounds in a Lovelace picture-elements card or a custom floorplan card.
 
 ---
 
