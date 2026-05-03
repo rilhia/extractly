@@ -2,7 +2,7 @@
 
 **Precision asset extraction from flat-colour images — no AI, no server, no signup.**
 
-![Step 1 — Load Image](images/ExtractlyIcon.png)
+![Step 1 — Load Image](images/ExtractlyLogoReadme.png)
 
 ---
 
